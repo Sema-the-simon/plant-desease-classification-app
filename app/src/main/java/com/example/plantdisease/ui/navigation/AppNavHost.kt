@@ -1,7 +1,12 @@
 package com.example.plantdisease.ui.navigation
 
+import androidx.camera.view.CameraController
+import androidx.camera.view.LifecycleCameraController
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -9,6 +14,7 @@ import com.example.plantdisease.data.navigation.Camera
 import com.example.plantdisease.data.navigation.Home
 import com.example.plantdisease.data.navigation.SelectedImage
 import com.example.plantdisease.ui.screens.camera.CameraScreen
+import com.example.plantdisease.ui.screens.camera.CameraViewModel
 import com.example.plantdisease.ui.screens.home.HomeScreen
 import com.example.plantdisease.ui.screens.selected.SelectedImageScreen
 
@@ -35,7 +41,20 @@ fun AppNavHost(
         }
 
         composable(Camera.route) {
-            CameraScreen { uri ->
+            val context = LocalContext.current
+            val controller = remember {
+                LifecycleCameraController(context).apply {
+                    setEnabledUseCases(
+                        CameraController.IMAGE_CAPTURE
+                    )
+                }
+            }
+            val viewModel: CameraViewModel = hiltViewModel()
+            CameraScreen(
+                viewModel,
+                context,
+                controller,
+            ) { uri ->
                 navController.navigate(SelectedImage.navToOrderWithArgs(uri))
             }
         }

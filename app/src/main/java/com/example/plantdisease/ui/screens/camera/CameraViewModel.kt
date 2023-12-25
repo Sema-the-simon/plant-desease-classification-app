@@ -44,7 +44,9 @@ class CameraViewModel @Inject constructor() : ViewModel() {
                     )
                 }
 
-            else -> TODO()
+            else -> {
+                TODO()
+            }
         }
     }
 
@@ -56,7 +58,7 @@ class CameraViewModel @Inject constructor() : ViewModel() {
     ) {
         _uiState.update {
             uiState.value.copy(
-                isButtonEnabled = false
+                isCameraEnabled = false
             )
         }
         controller.takePicture(
@@ -142,5 +144,5 @@ class CameraViewModel @Inject constructor() : ViewModel() {
 }
 
 data class CameraUiState(
-    val isButtonEnabled: Boolean = true,
+    val isCameraEnabled: Boolean = true,
 )

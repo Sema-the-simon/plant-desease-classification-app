@@ -1,31 +1,33 @@
 package com.example.plantdisease.ui.screens.camera
 
-import androidx.camera.view.CameraController
+import android.content.Context
 import androidx.camera.view.LifecycleCameraController
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
@@ -37,17 +39,11 @@ import com.example.plantdisease.utils.extentions.dashedBorder
 
 @Composable
 fun CameraScreen(
+    viewModel: CameraViewModel = hiltViewModel(),
+    context: Context? = null,
+    controller: LifecycleCameraController? = context?.let { LifecycleCameraController(it) },
     navigateToSelectedImage: (String) -> Unit,
 ) {
-    val context = LocalContext.current
-    val controller = remember {
-        LifecycleCameraController(context).apply {
-            setEnabledUseCases(
-                CameraController.IMAGE_CAPTURE
-            )
-        }
-    }
-    val viewModel: CameraViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
 
     Column(
@@ -55,7 +51,6 @@ fun CameraScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp)
             .padding(top = 40.dp, bottom = 20.dp)
     ) {
         Column(
@@ -71,33 +66,61 @@ fun CameraScreen(
                     .background(Color.Transparent),
                 contentAlignment = Alignment.Center
             ) {
-                CameraPreview(
-                    controller = controller,
+                if (controller != null)
+                    CameraPreview(
+                        controller = controller,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(top = 20.dp)
+                        //.border(5.dp, Color.Red)
+                    )
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .scale(0.8f)
+                        .align(Alignment.TopCenter)
+                        .background(Color.Gray.copy(alpha = 0.8f), RoundedCornerShape(16.dp))
+                        .border(4.dp, Color.Black, RoundedCornerShape(16.dp))
+                        .padding(8.dp)
 
-                )
+                ) {
+                    Text(
+                        text = "Сделайте фото растения в выделенной области",
+                        color = Color.Green,
+                        textAlign = TextAlign.Center
+                    )
+                }
                 Box(
                     modifier = Modifier
                         .height(300.dp)
                         .width(300.dp)
                         .dashedBorder(4.dp, Color.Green)
                 )
+                if (!uiState.isCameraEnabled) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(0.95f)
+                            .fillMaxHeight(0.83f)
+                            .padding(top = 20.dp)
+                            .background(Color.DarkGray.copy(alpha = 0.8f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(text = "Сохраняем...", color = Color.LightGray)
+                    }
+                }
             }
         }
 
         IconButton(
-            enabled = uiState.isButtonEnabled,
+            enabled = uiState.isCameraEnabled,
             onClick = {
-                viewModel.onUiAction(
-                    CameraUiAction.TakePhoto(
-                        context,
-                        controller
-                    ) { uri ->
-                        navigateToSelectedImage(uri)
-                    }
-                )
+                if (context != null && controller != null)
+                    viewModel.onUiAction(
+                        CameraUiAction.TakePhoto(
+                            context,
+                            controller
+                        ) { uri ->
+                            navigateToSelectedImage(uri)
+                        }
+                    )
             },
             modifier = Modifier
                 .scale(1.8f)
@@ -113,12 +136,12 @@ fun CameraScreen(
 }
 
 
-@Preview(showBackground = true, widthDp = 320, heightDp = 650)
+@Preview(showBackground = true, widthDp = 380, heightDp = 780)
 @Composable
 fun CameraScreenPreview(
     @PreviewParameter(ThemeModePreview::class) darkTheme: Boolean
 ) {
     PlantDiseaseTheme(darkTheme = darkTheme) {
-        CameraScreen { }
+        CameraScreen() { }
     }
 }
