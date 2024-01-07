@@ -8,6 +8,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.plantdisease.data.classifier.TFDiseaseClassifier
+import com.example.plantdisease.data.model.DiseaseClassification
 import com.example.plantdisease.data.navigation.SelectedImage
 import com.example.plantdisease.ui.components.centerCrop
 import kotlinx.coroutines.Dispatchers
@@ -31,13 +32,20 @@ class SelectedImageViewModel @Inject constructor(
             is SelectedImageUiAction.Analyze -> viewModelScope.launch {
                 _uiState.update {
                     uiState.value.copy(
-                        isAnalyzing = true
+                        isAnalyzing = true,
+                        selectedProduct = action.string
                     )
                 }
-                analyzeImg(action.context)
+                analyzeImg(action.context, action.string)
             }
 
-            else -> {}
+            is SelectedImageUiAction.StateChange -> {
+                _uiState.update {
+                    uiState.value.copy(
+                        state = action.state
+                    )
+                }
+            }
         }
     }
 
@@ -58,14 +66,16 @@ class SelectedImageViewModel @Inject constructor(
         return bitmap != null
     }
 
-    private suspend fun analyzeImg(context: Context) {
+    private suspend fun analyzeImg(context: Context, product: String) {
         return withContext(Dispatchers.IO) {
             val btm = uiState.value.bitmap
             if (btm != null)
                 _uiState.update {
                     uiState.value.copy(
-                        res = TFDiseaseClassifier(context).classify(btm, 0).maxByOrNull { it.score }?.name
-                            ?: "i don't know what",
+                        res = TFDiseaseClassifier(context)
+                            .classify(btm, 0)
+                            .sortedByDescending { it.score }
+                            .filter { it.name.startsWith(product) },
                         isAnalyzing = false
                     )
                 }
@@ -77,6 +87,18 @@ class SelectedImageViewModel @Inject constructor(
 
 data class SelectedImageUiState(
     val bitmap: Bitmap? = null,
-    val res: String = "",
-    val isAnalyzing: Boolean = false
+    val res: List<DiseaseClassification> = emptyList(),
+    val isAnalyzing: Boolean = false,
+    val state: ResultsStates = ResultsStates.IMG,
+    val list: List<String> = listOf(
+        "Cabbage",//Cabbage - Капуста
+        "Tomato",//Tomato - Помидор
+        "Soy",//Soy - Соя
+        "Maize"//Maize - Кукуруза
+    ),
+    val selectedProduct: String = ""
 )
+
+enum class ResultsStates {
+    IMG, LIST, RES
+}

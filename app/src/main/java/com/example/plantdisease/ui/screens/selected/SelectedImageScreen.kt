@@ -34,41 +34,94 @@ fun SelectedImageScreen(
     }
     val uiState by viewModel.uiState.collectAsState()
     Column(
-        verticalArrangement = Arrangement.Bottom,
+        verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxSize()
             .padding(vertical = 40.dp, horizontal = 20.dp)
     ) {
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            if (uiState.bitmap == null)
-                Image(
-                    painterResource(id = R.drawable.image_loading),
-                    contentDescription = "",
-                    modifier = Modifier.fillMaxWidth(),
-                    contentScale = ContentScale.Inside
-                )
-            else
-                Image(
-                    uiState.bitmap  !!.asImageBitmap(),
-                    contentDescription = "",
-                    modifier = Modifier.fillMaxWidth(),
-                    contentScale = ContentScale.Inside
-                )
-        }
-        if (uiState.res != "")
-            Text(text = "Результат аналзиза: ${uiState.res}")
+        when (uiState.state) {
+            ResultsStates.IMG -> {
 
-        CustomTextButton(
-            text = if (uiState.isAnalyzing) "Анализируем...." else "Анализировать",
-            onClick = {
-                viewModel.onUiAction(SelectedImageUiAction.Analyze(context))
-            },
-            enabled = !uiState.isAnalyzing
-        )
+                if (uiState.bitmap == null)
+                    Image(
+                        painterResource(id = R.drawable.image_loading),
+                        contentDescription = "",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Inside
+                    )
+                else
+                    Image(
+                        uiState.bitmap!!.asImageBitmap(),
+                        contentDescription = "",
+                        modifier = Modifier.fillMaxWidth(),
+                        contentScale = ContentScale.Inside
+                    )
+
+                CustomTextButton(
+                    text = if (uiState.isAnalyzing) "Анализируем...." else "Анализировать",
+                    onClick = {
+                        viewModel.onUiAction(SelectedImageUiAction.StateChange(ResultsStates.LIST))
+                    },
+                    enabled = !uiState.isAnalyzing
+                )
+
+            }
+
+            ResultsStates.LIST -> {
+                Column(
+                    verticalArrangement = Arrangement.Top,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Выберете культуру, которую вы сфотографировали:",
+                        modifier = Modifier.padding(bottom = 20.dp)
+                    )
+
+
+                    for (product in uiState.list) {
+                        CustomTextButton(
+                            text = product,
+                            onClick = {
+                                viewModel.onUiAction(
+                                    SelectedImageUiAction.StateChange(ResultsStates.RES)
+                                )
+                                viewModel.onUiAction(SelectedImageUiAction.Analyze(context, product))
+
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+            }
+
+            ResultsStates.RES -> {
+                Image(
+                    uiState.bitmap!!.asImageBitmap(),
+                    contentDescription = "",
+                    modifier = Modifier.fillMaxWidth(),
+                    contentScale = ContentScale.Inside
+                )
+
+                Column(
+                    verticalArrangement = Arrangement.Top,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                ) {
+                    Text(
+                        text = "Результаты анализа:",
+                        modifier = Modifier.padding(bottom = 20.dp)
+                    )
+                    for (res in uiState.res) {
+                        Text(text = "${(res.score * 100).toInt()}% - ${res.name}")
+                    }
+                }
+            }
+        }
+
     }
 }

@@ -13,8 +13,8 @@ import org.tensorflow.lite.task.vision.classifier.ImageClassifier
 
 class TFDiseaseClassifier(
     private val context: Context,
-    private val threshold: Float = 0.5f,
-    private val maxResult: Int = 5
+    private val threshold: Float = 0.01f,
+    private val maxResult: Int = 3
 ) : DiseaseClassifier {
 
     private var classifier: ImageClassifier? = null
