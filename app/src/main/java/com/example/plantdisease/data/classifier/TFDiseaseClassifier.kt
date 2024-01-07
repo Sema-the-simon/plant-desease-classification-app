@@ -6,6 +6,7 @@ import android.view.Surface
 import com.example.plantdisease.data.model.DiseaseClassification
 import org.tensorflow.lite.support.image.ImageProcessor
 import org.tensorflow.lite.support.image.TensorImage
+import org.tensorflow.lite.support.image.ops.ResizeOp
 import org.tensorflow.lite.task.core.BaseOptions
 import org.tensorflow.lite.task.core.vision.ImageProcessingOptions
 import org.tensorflow.lite.task.vision.classifier.ImageClassifier
@@ -13,7 +14,7 @@ import org.tensorflow.lite.task.vision.classifier.ImageClassifier
 class TFDiseaseClassifier(
     private val context: Context,
     private val threshold: Float = 0.5f,
-    private val maxResult: Int = 1
+    private val maxResult: Int = 5
 ) : DiseaseClassifier {
 
     private var classifier: ImageClassifier? = null
@@ -46,7 +47,10 @@ class TFDiseaseClassifier(
             setUpClassifier()
         }
 
-        val imageProcessor = ImageProcessor.Builder().build()
+        val imageProcessor = ImageProcessor.Builder()
+            //.add(ResizeOp(300, 300, ResizeOp.ResizeMethod.BILINEAR))
+            .build()
+
         val tensorImage = imageProcessor.process(TensorImage.fromBitmap(bitmap))
 
         val imageProcessingOptions = ImageProcessingOptions.builder()

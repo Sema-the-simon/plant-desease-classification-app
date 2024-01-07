@@ -38,8 +38,9 @@ fun CameraPreview(
                 }
             },
             modifier = Modifier
-                .fillMaxWidth(0.95f)
-                .fillMaxHeight(0.8f)
+                .fillMaxSize()
+                //.fillMaxWidth(0.95f)
+                //.fillMaxHeight(0.8f)
         )
     }
 }

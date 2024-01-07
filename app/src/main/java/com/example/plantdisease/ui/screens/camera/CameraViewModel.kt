@@ -58,27 +58,18 @@ class CameraViewModel @Inject constructor() : ViewModel() {
     ) {
         _uiState.update {
             uiState.value.copy(
-                isCameraEnabled = false
+                isImageSaving = true
             )
         }
+
         controller.takePicture(
             ContextCompat.getMainExecutor(context),
             object : ImageCapture.OnImageCapturedCallback() {
                 override fun onCaptureSuccess(image: ImageProxy) {
                     super.onCaptureSuccess(image)
 
-                    val matrix = Matrix().apply {
-                        postRotate(image.imageInfo.rotationDegrees.toFloat())
-                    }
-                    val bitmap = image.toBitmap()
-                    val rotatedBitmap = Bitmap.createBitmap(
-                        bitmap,
-                        0, 0,
-                        bitmap.width,
-                        bitmap.height,
-                        matrix,
-                        true
-                    )
+                    val bitmap = image.toBitmapAndRotate()
+
                     viewModelScope.launch {
                         val uri = viewModelScope.async(Dispatchers.IO) {
                             saveToExternalStorage(
@@ -86,7 +77,7 @@ class CameraViewModel @Inject constructor() : ViewModel() {
                                 "plant disease ${
                                     System.currentTimeMillis().convertToDateFormat()
                                 }",
-                                rotatedBitmap
+                                bitmap
                             )
                         }
                         onPhotoTake(uri.await())
@@ -102,7 +93,7 @@ class CameraViewModel @Inject constructor() : ViewModel() {
 
     }
 
-    private suspend fun saveToExternalStorage(
+    private fun saveToExternalStorage(
         context: Context,
         imageName: String,
         bitmap: Bitmap,
@@ -141,8 +132,26 @@ class CameraViewModel @Inject constructor() : ViewModel() {
             ""
         }
     }
+
+    private fun ImageProxy.toBitmapAndRotate(): Bitmap {
+        val matrix = Matrix().apply {
+            postRotate(this@toBitmapAndRotate.imageInfo.rotationDegrees.toFloat())
+        }
+        val bitmap = this.toBitmap()
+
+        return Bitmap.createBitmap(
+            bitmap,
+            0, 0,
+            bitmap.width,
+            bitmap.height,
+            matrix,
+            true
+        )
+    }
 }
 
 data class CameraUiState(
     val isCameraEnabled: Boolean = true,
+    val isImageSaving: Boolean = false,
+    val takingPicture: Bitmap? = null
 )

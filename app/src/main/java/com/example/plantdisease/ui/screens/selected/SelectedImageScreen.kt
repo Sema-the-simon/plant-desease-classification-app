@@ -54,7 +54,7 @@ fun SelectedImageScreen(
                 )
             else
                 Image(
-                    uiState.bitmap!!.asImageBitmap(),
+                    uiState.bitmap  !!.asImageBitmap(),
                     contentDescription = "",
                     modifier = Modifier.fillMaxWidth(),
                     contentScale = ContentScale.Inside
