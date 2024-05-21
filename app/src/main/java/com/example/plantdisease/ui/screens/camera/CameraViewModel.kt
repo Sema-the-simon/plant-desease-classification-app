@@ -11,6 +11,7 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.view.LifecycleCameraController
+import androidx.compose.ui.unit.Dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -27,6 +28,7 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import javax.inject.Inject
 
+
 @HiltViewModel
 class CameraViewModel @Inject constructor() : ViewModel() {
 
@@ -40,6 +42,7 @@ class CameraViewModel @Inject constructor() : ViewModel() {
                     takePhoto(
                         action.context,
                         action.controller,
+                        action.screenWidth,
                         action.onPhotoTake
                     )
                 }
@@ -54,6 +57,7 @@ class CameraViewModel @Inject constructor() : ViewModel() {
     private suspend fun takePhoto(
         context: Context,
         controller: LifecycleCameraController,
+        screenWidth: Dp,
         onPhotoTake: (String) -> Unit
     ) {
         _uiState.update {
@@ -68,7 +72,7 @@ class CameraViewModel @Inject constructor() : ViewModel() {
                 override fun onCaptureSuccess(image: ImageProxy) {
                     super.onCaptureSuccess(image)
 
-                    val bitmap = image.toBitmapAndRotate()
+                    val bitmap = image.toBitmapAndRotate(screenWidth)
 
                     viewModelScope.launch {
                         val uri = viewModelScope.async(Dispatchers.IO) {
@@ -78,6 +82,11 @@ class CameraViewModel @Inject constructor() : ViewModel() {
                                     System.currentTimeMillis().convertToDateFormat()
                                 }",
                                 bitmap
+                            )
+                        }
+                        _uiState.update {
+                            uiState.value.copy(
+                                isImageSaving = false
                             )
                         }
                         onPhotoTake(uri.await())
@@ -133,13 +142,13 @@ class CameraViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    private fun ImageProxy.toBitmapAndRotate(): Bitmap {
+    private fun ImageProxy.toBitmapAndRotate(screenWidth: Dp): Bitmap {
         val matrix = Matrix().apply {
             postRotate(this@toBitmapAndRotate.imageInfo.rotationDegrees.toFloat())
         }
         val bitmap = this.toBitmap()
 
-        return Bitmap.createBitmap(
+        val rotatedBitmap = Bitmap.createBitmap(
             bitmap,
             0, 0,
             bitmap.width,
@@ -147,6 +156,23 @@ class CameraViewModel @Inject constructor() : ViewModel() {
             matrix,
             true
         )
+        //calculate aspect ratio
+        val koefX = rotatedBitmap.getWidth().toFloat() / screenWidth.value
+
+
+        //get viewfinder border size and position on the screen
+        val x1: Int = ((screenWidth.value - 300f) / 2).toInt()
+
+        val x2: Int = 300
+
+        //calculate position and size for cropping
+        val cropStartX = Math.round(x1 * koefX)
+        val cropWidthX = Math.round(x2 * koefX)
+        val cropStartY = (rotatedBitmap.height -cropWidthX) /2
+        val croppedBitmap =
+            Bitmap.createBitmap(rotatedBitmap, cropStartX, cropStartY, cropWidthX, cropWidthX)
+
+        return croppedBitmap
     }
 }
 

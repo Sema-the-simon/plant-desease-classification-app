@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -52,11 +53,9 @@ fun CameraScreen(
     ) {
         Text(
             text = "Сделайте фото растения в выделенной области",
-            color = Color.Green,
+            color = Color.Black,
             textAlign = TextAlign.Center,
             modifier = Modifier
-                .background(Color.Gray.copy(alpha = 0.8f), RoundedCornerShape(16.dp))
-                .border(4.dp, Color.Black, RoundedCornerShape(16.dp))
                 .padding(8.dp)
         )
         Box(
@@ -91,6 +90,7 @@ fun CameraScreen(
                     .dashedBorder(4.dp, Color.Green)
             )
         }
+        val screenWidth = LocalConfiguration.current.screenWidthDp.dp
         OutlinedIconButton(
             enabled = !uiState.isImageSaving,
             onClick = {
@@ -98,7 +98,8 @@ fun CameraScreen(
                     viewModel.onUiAction(
                         CameraUiAction.TakePhoto(
                             context,
-                            controller
+                            controller,
+                            screenWidth
                         ) { uri ->
                             navigateToSelectedImage(uri)
                         }

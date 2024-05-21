@@ -1,24 +1,23 @@
 package com.example.plantdisease.ui.screens.home
 
-import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
+import com.example.plantdisease.R
 import com.example.plantdisease.ui.components.CustomTextButton
 import com.example.plantdisease.ui.theme.PlantDiseaseTheme
 import com.example.plantdisease.ui.theme.ThemeModePreview
@@ -42,14 +41,19 @@ fun HomeScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxSize()
-            .padding(vertical = 40.dp, horizontal = 20.dp)
+            .padding(vertical = 60.dp, horizontal = 20.dp)
     ) {
         Column(
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.Top,
+            verticalArrangement = Arrangement.SpaceAround,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(text = "Предоставьте изображение")
+            Image(
+                painter = painterResource(id = R.drawable.baseline_local_florist_24),
+                contentDescription = "load plant image",
+                modifier = Modifier.weight(2f).scale(2f)
+            )
         }
 
         CustomTextButton(

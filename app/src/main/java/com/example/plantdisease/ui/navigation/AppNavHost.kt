@@ -17,6 +17,7 @@ import com.example.plantdisease.ui.screens.camera.CameraScreen
 import com.example.plantdisease.ui.screens.camera.CameraViewModel
 import com.example.plantdisease.ui.screens.home.HomeScreen
 import com.example.plantdisease.ui.screens.selected.SelectedImageScreen
+import com.example.plantdisease.ui.screens.selected.SelectedImageViewModel
 
 @Composable
 fun AppNavHost(
@@ -49,9 +50,9 @@ fun AppNavHost(
                     )
                 }
             }
-            val viewModel: CameraViewModel = hiltViewModel()
+            val cameraViewModel: CameraViewModel = hiltViewModel()
             CameraScreen(
-                viewModel,
+                cameraViewModel,
                 context,
                 controller,
             ) { uri ->
@@ -59,11 +60,11 @@ fun AppNavHost(
             }
         }
 
-        composable(
-            SelectedImage.routeWithArgs,
-            arguments = SelectedImage.arguments
-        ) {
-            SelectedImageScreen()
+        composable(SelectedImage.routeWithArgs, arguments = SelectedImage.arguments) {
+            val selectedImageViewModel: SelectedImageViewModel = hiltViewModel()
+            SelectedImageScreen(
+                selectedImageViewModel
+            )
         }
 
     }

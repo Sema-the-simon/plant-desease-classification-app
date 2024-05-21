@@ -7,9 +7,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 
 @HiltViewModel
-class HomeViewModel @Inject constructor(
-
-) : ViewModel() {
+class HomeViewModel @Inject constructor() : ViewModel() {
 
     private val _uiState = MutableStateFlow(ListUiState())
     val uiState = _uiState.asStateFlow()
@@ -22,5 +20,5 @@ class HomeViewModel @Inject constructor(
 }
 
 data class ListUiState(
-     val value: Int = 0,
+    val value: Int = 0,
 )

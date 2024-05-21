@@ -5,7 +5,6 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -16,6 +15,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.plantdisease.ui.navigation.AppNavHost
 import com.example.plantdisease.ui.theme.PlantDiseaseTheme
 import dagger.hilt.android.AndroidEntryPoint
+
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -28,7 +28,6 @@ class MainActivity : ComponentActivity() {
                 this, PERMISSIONS, 0
             )
         }
-
         setContent {
             val navController = rememberNavController()
 
@@ -54,6 +53,7 @@ class MainActivity : ComponentActivity() {
             ) == PackageManager.PERMISSION_GRANTED
         }
     }
+
 
     companion object {
         private val PERMISSIONS = arrayOf(

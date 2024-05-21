@@ -10,15 +10,12 @@ interface Destination {
 object Home : Destination {
     override val route: String = "home"
 }
-
 object Camera : Destination {
     override val route: String = "camera"
 }
-
 object SelectedImage : Destination {
-    const val uri = "uri"
     override val route: String = "image"
-
+    const val uri = "uri"
     const val routeWithArgs = "image/{uri}"
 
     val arguments = listOf(
@@ -26,7 +23,6 @@ object SelectedImage : Destination {
             type = NavType.StringType
         }
     )
-
     fun navToOrderWithArgs(
         uri: String = ""
     ): String {

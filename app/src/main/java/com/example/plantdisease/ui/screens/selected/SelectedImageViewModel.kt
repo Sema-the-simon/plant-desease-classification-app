@@ -7,11 +7,12 @@ import androidx.core.net.toUri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.plantdisease.data.classifier.TFDiseaseClassifier
-import com.example.plantdisease.data.model.DiseaseClassification
+import com.example.plantdisease.data.detector.BoundingBox
+import com.example.plantdisease.data.detector.Detector
 import com.example.plantdisease.data.navigation.SelectedImage
-import com.example.plantdisease.ui.components.centerCrop
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -20,8 +21,9 @@ import kotlinx.coroutines.withContext
 import okio.use
 import javax.inject.Inject
 
+@HiltViewModel
 class SelectedImageViewModel @Inject constructor(
-    private val savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SelectedImageUiState())
@@ -49,36 +51,49 @@ class SelectedImageViewModel @Inject constructor(
         }
     }
 
-    fun initViewModel(context: Context): Boolean {
+    init {
         val uri = savedStateHandle.get<String>(SelectedImage.uri) ?: ""
-        var bitmap: Bitmap? = null
-
-        viewModelScope.launch(Dispatchers.IO) {
-            context.contentResolver.openInputStream(uri.toUri()).use {
-                bitmap = BitmapFactory.decodeStream(it).centerCrop(3000, 3000)
-            }
-            _uiState.update {
-                uiState.value.copy(
-                    bitmap = bitmap
-                )
-            }
+        _uiState.update {
+            uiState.value.copy(
+                uri = uri
+            )
         }
-        return bitmap != null
     }
 
     private suspend fun analyzeImg(context: Context, product: String) {
         return withContext(Dispatchers.IO) {
-            val btm = uiState.value.bitmap
-            if (btm != null)
+            var bitmap: Bitmap? = null
+
+            bitmap = viewModelScope.async(Dispatchers.IO) {
+                context.contentResolver.openInputStream(
+                    uiState.value.uri?.toUri() ?: throw IllegalArgumentException("URI was empty")
+                ).use {
+                    bitmap = BitmapFactory.decodeStream(it)
+                }
                 _uiState.update {
                     uiState.value.copy(
-                        res = TFDiseaseClassifier(context)
-                            .classify(btm, 0)
-                            .sortedByDescending { it.score }
-                            .filter { it.name.startsWith(product) },
+                        bitmap = bitmap
+                    )
+                }
+                bitmap
+            }.await()
+
+            if (bitmap != null) {
+                val detector = Detector(context)
+                detector.setup()
+
+                val res = detector.detect(bitmap!!)
+                    //.filter { it.clsName.startsWith(product) }
+                println()
+
+
+                _uiState.update {
+                    uiState.value.copy(
+                        res = res,
                         isAnalyzing = false
                     )
                 }
+            }
         }
     }
 
@@ -87,14 +102,28 @@ class SelectedImageViewModel @Inject constructor(
 
 data class SelectedImageUiState(
     val bitmap: Bitmap? = null,
-    val res: List<DiseaseClassification> = emptyList(),
+    val uri: String? = null,
+    val res: List<BoundingBox> = emptyList(),
     val isAnalyzing: Boolean = false,
     val state: ResultsStates = ResultsStates.IMG,
     val list: List<String> = listOf(
-        "Cabbage",//Cabbage - Капуста
-        "Tomato",//Tomato - Помидор
-        "Soy",//Soy - Соя
-        "Maize"//Maize - Кукуруза
+        "Apple Scab Leaf",
+        "Apple rust leaf",
+        "Bell_pepper leaf spot",
+        "Corn Gray leaf spot",
+        "Corn leaf blight",
+        "Corn rust leaf",
+        "Potato leaf early blight",
+        "Potato leaf late blight",
+        "Tomato Early blight leaf",
+        "Tomato Septoria leaf spot",
+        "Tomato leaf bacterial spot",
+        "Tomato leaf late blight",
+        "Tomato leaf mosaic virus",
+        "Tomato leaf yellow virus",
+        "Tomato mold leaf",
+        "Tomato two spotted spider mites leaf",
+        "grape leaf black rot"
     ),
     val selectedProduct: String = ""
 )
