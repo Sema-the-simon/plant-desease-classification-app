@@ -3,7 +3,6 @@ package com.example.plantdisease.ui.screens.selected
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,7 +42,6 @@ import coil.compose.AsyncImage
 import com.example.plantdisease.R
 import com.example.plantdisease.ui.components.CustomTextButton
 import com.example.plantdisease.utils.Constants
-import kotlin.random.Random
 
 @Composable
 fun SelectedImageScreen(
@@ -136,8 +134,8 @@ fun SelectedImageScreen(
                         Image(
                             uiState.bitmap!!.asImageBitmap(),
                             contentDescription = "",
-                            modifier = Modifier.fillMaxWidth(),
-                            contentScale = ContentScale.Inside
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Fit
                         )
                     else
                         Image(
@@ -150,22 +148,22 @@ fun SelectedImageScreen(
 
                     val res = uiState.res.groupBy { it.clsName }
                     val textMeasurer = rememberTextMeasurer()
-                    var i = 0
-                    res.forEach { (name, group) ->
-                        val color = colorsList[i]
-                        i++
+                    var j = 0
+                    res.forEach { (_, group) ->
+                        val color = colorsList[j]
+                        j++
                         for (i in group.indices) {
                             val el = group[i]
                             Canvas(
                                 modifier = Modifier.fillMaxSize()
                             ) {
                                 val height = size.height * 85 / 100
-                                var width = size.width  * 95 / 100
-                                var offset = size.width / 100 * 5
+                                val width = size.width  * 100 / 100
+                                val offset = size.width / 100 * 5
 
-                                val left = width * el.x1 + offset
+                                val left = width * el.x1 //+ offset
                                 val top = height * el.y1 + offset
-                                val right = width * el.x2 + offset
+                                val right = width * el.x2 //+ offset
                                 val bottom = height * el.y2 + offset
 
                                 val measuredText =
@@ -224,7 +222,6 @@ fun SelectedImageScreen(
                     for ((name, list) in uiState.res.groupBy { it.clsName }) {
                         val color = colorsList[j]
                         j++
-                        val btmp = uiState.bitmap!!
                         Row {
                             Box(modifier = Modifier.background(color).width(20.dp).height(20.dp))
                             Text(text = " $name:")
